@@ -517,7 +517,7 @@ def train_lora(
                 best_epoch = epoch + 1
                 patience_counter=0
                 if accelerator.is_main_process:
-                    best_model_path = os.path.join(output_dir,"best_model")
+                    best_model_path = os.path.join(output_dir,"best_model_ctc")
                     os.makedirs(best_model_path, exist_ok=True)
                     
                     unwrapped_unet = accelerator.unwrap_model(unet)
@@ -528,7 +528,7 @@ def train_lora(
                         "val_loss": best_val_loss,
                         "train_loss": avg_train_loss
                     }
-                    with open(os.path.join(best_model_path, "best_model_info.json"), "w") as f:
+                    with open(os.path.join(best_model_path, "best_model_ctc_info.json"), "w") as f:
                         json.dump(best_info, f, indent=2)
                     
                     print(f"保存最优模型 (验证损失: {best_val_loss:.4f})")
@@ -579,7 +579,7 @@ def train_lora(
             json.dump(config_info, f, indent=2)
         
         print(f"最终模型已保存到: {final_path}")
-        print(f"最优模型已保存到: {os.path.join(output_dir,'best_model')}")
+        print(f"最优模型已保存到: {os.path.join(output_dir,'best_model_ctc')}")
         print(f"最优epoch: {best_epoch}")
         print(f"最优验证损失: {best_val_loss:.4f}")
     
@@ -592,9 +592,9 @@ if __name__ == "__main__":
     TRAIN_FILE_PATHS = [
         '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_1.csv',
         '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_2.csv',
-        '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_3.csv'
+        '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_3.csv',
     ]
-    VAL_FILE_PATHS = ["/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_4.csv"]
+    VAL_FILE_PATHS = ['/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_4.csv']
     
     
     print("\n"+"="*60)
@@ -630,7 +630,7 @@ if __name__ == "__main__":
         val_csv_file=VAL_FILE_PATHS,
         output_dir=f"./stage2_cancer_lora_peft_{cancer_types}",
         model_id="stabilityai/stable-diffusion-2-base",
-        pretrained_lora_path="./stage1_all_cells_lora_peft/best_model",  # 使用第一阶段最优模型
+        pretrained_lora_path="./stage1_all_cells_lora_peft/best_model_ctc",  # 使用第一阶段最优模型
         filter_cell_type=cancer_types,
         num_epochs=100,
         batch_size=4,
