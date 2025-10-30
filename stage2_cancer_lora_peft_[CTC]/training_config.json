@@ -1,0 +1,18 @@
+{
+  "model_id": "stabilityai/stable-diffusion-2-base",
+  "lora_r": 16,
+  "lora_alpha": 32,
+  "target_modules": [
+    "to_q",
+    "to_k",
+    "to_v",
+    "to_out.0"
+  ],
+  "num_epochs": 100,
+  "best_epoch": 85,
+  "best_val_loss": 0.1369186888138453,
+  "final_train_loss": 0.13096414903799694,
+  "n_gpus": 2,
+  "per_device_batch_size": 4,
+  "effective_batch_size": 32
+}

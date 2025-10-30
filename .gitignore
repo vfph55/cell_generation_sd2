@@ -1,2 +1,3 @@
 /stage1_all_cells_lora_peft
-/stage2_cancer_lora_peft_['threeWBC']
+/stage2_cancer_lora_peft_[CTC]
+/stage2_cancer_lora_peft_[threeWBC]

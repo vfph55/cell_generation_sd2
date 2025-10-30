@@ -1,6 +1,7 @@
 import datetime
 import os
 from PIL import Image
+from sympy import im
 import torch
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
@@ -32,7 +33,7 @@ class CellDataset(Dataset):
 
         Args:
             csv_files (string list): 文件路径名
-            image_size (int, optional): Defaults to 512.
+            image_size (int, optional): Defaults to 128.
             filter_cell_type (_type_, optional): Defaults to None. 如果指定，只保留这类型样本，用于第二阶段的微调
             transform
         """
@@ -70,7 +71,8 @@ class CellDataset(Dataset):
     
     def pad_image_with_mean(self, image, target_size):
         """使用均值填充将图像调整为目标大小"""
-        h, w = image.shape[:2]
+        
+        h, w = image.shape[:2] # height, width, channels
         
         if h >= target_size and w >= target_size:
             return cv2.resize(image, (target_size, target_size))
@@ -212,7 +214,7 @@ def train_lora(
     output_dir,
     model_id = 'stabilityai/stable-diffusion-2-base',
     pretrained_lora_path=None,  # 第二阶段用：加载第一阶段的LoRA
-    filter_cell_type=None,  # 第二阶段用：只训练癌细胞和CHC
+    filter_cell_type=None,  # 第二阶段用：只训练癌细胞
     num_epochs = 100,
     batch_size = 4,
     val_batch_size=8,
@@ -589,35 +591,40 @@ def train_lora(
         
     
 if __name__ == "__main__":
-    TRAIN_FILE_PATHS = [
+    
+    csv_files = [
         '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_1.csv',
         '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_2.csv',
         '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_3.csv',
+        '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_4.csv',
+        '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_5.csv',
+        
     ]
-    VAL_FILE_PATHS = ['/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_4.csv']
+    TRAIN_FILE_PATHS = csv_files[:4]  # 前3个作为训练集
+    VAL_FILE_PATHS = [csv_files[4]]
     
     
     print("\n"+"="*60)
     print("第一阶段: 全部细胞的lora训练")
     print("="*60)
-    train_lora(
-        train_csv_files=TRAIN_FILE_PATHS,
-        val_csv_file = VAL_FILE_PATHS,
-        output_dir='./stage1_all_cells_lora_peft',
-        model_id="stabilityai/stable-diffusion-2-base",
-        num_epochs=50, 
-        batch_size=8,  # 根据显存调整
-        val_batch_size=16,
-        learning_rate=1e-4,
-        gradient_accumulation_steps=4,
-        lora_r=16,
-        lora_alpha = 32,
-        lora_dropout=0.1,
-        save_every_n_epochs=20, 
-        validation_epochs=5,
-        early_stopping_patience=10,
-    )
-    print("第一阶段lora训练已完成")
+    # train_lora(
+    #     train_csv_files=TRAIN_FILE_PATHS,
+    #     val_csv_file = VAL_FILE_PATHS,
+    #     output_dir='./stage1_all_cells_lora_peft',
+    #     model_id="stabilityai/stable-diffusion-2-base",
+    #     num_epochs=50, 
+    #     batch_size=8,  # 根据显存调整
+    #     val_batch_size=16,
+    #     learning_rate=1e-4,
+    #     gradient_accumulation_steps=4,
+    #     lora_r=16,
+    #     lora_alpha = 32,
+    #     lora_dropout=0.1,
+    #     save_every_n_epochs=20, 
+    #     validation_epochs=5,
+    #     early_stopping_patience=10,
+    # )
+    # print("第一阶段lora训练已完成")
     # ==================== 第二阶段 ====================
     print("\n" + "=" * 60)
     print("第二阶段：癌细胞专项LoRA微调")
@@ -626,9 +633,9 @@ if __name__ == "__main__":
     cancer_types = ["CTC"] 
     
     train_lora(
-        train_csv_files=TRAIN_FILE_PATHS,
+        train_csv_files=csv_files,
         val_csv_file=VAL_FILE_PATHS,
-        output_dir=f"./stage2_cancer_lora_peft_{cancer_types}",
+        output_dir=f"./stage2_cancer_lora_peft_usingAllCTC_{cancer_types}",
         model_id="stabilityai/stable-diffusion-2-base",
         pretrained_lora_path="./stage1_all_cells_lora_peft/best_model_ctc",  # 使用第一阶段最优模型
         filter_cell_type=cancer_types,

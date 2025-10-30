@@ -1,0 +1,7 @@
+{
+  "epoch": 85,
+  "val_loss": 0.1369186888138453,
+  "train_loss": 0.13436411110063393,
+  "n_gpus": 2,
+  "effective_batch_size": 32
+}
