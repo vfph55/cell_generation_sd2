@@ -638,17 +638,22 @@ def train_lora(
         
     
 if __name__ == "__main__":
-    TRAIN_FILE_PATHS = [
+    csv_files = [
         '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_1.csv',
         '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_2.csv',
         '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_3.csv',
+        '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_4.csv',
+        '/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_5.csv',
+        
     ]
-    VAL_FILE_PATHS = ['/F00120250015/cell_datasets/dataset_zkw/test/251016/folds/fold_4.csv']
+    TRAIN_FILE_PATHS = csv_files[:4]  # 前3个作为训练集
+    VAL_FILE_PATHS = [csv_files[4]]
     
     
     print("\n"+"="*60)
     print("第一阶段: 全部细胞的lora训练")
     print("="*60)
+    
     train_lora(
         train_csv_files=TRAIN_FILE_PATHS,
         val_csv_file = VAL_FILE_PATHS,
@@ -673,11 +678,10 @@ if __name__ == "__main__":
     print("=" * 60)
     
     cancer_types = ["CTC"] 
-    
     train_lora(
-        train_csv_files=TRAIN_FILE_PATHS,
+        train_csv_files=csv_files,
         val_csv_file=VAL_FILE_PATHS,
-        output_dir=f"./stage2_cancer_lora_peft_{cancer_types}",
+        output_dir=f"./stage2_cancer_lora_peft_usingAllCTC_{cancer_types}",
         model_id="stabilityai/stable-diffusion-2-base",
         pretrained_lora_path="./stage1_all_cells_lora_peft/best_model_ctc",  # 使用第一阶段最优模型
         filter_cell_type=cancer_types,
